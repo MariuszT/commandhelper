@@ -587,6 +587,12 @@ public class BukkitMCWorld implements MCWorld {
 		return new BukkitMCFallingBlock(w.spawnFallingBlock(mcloc, type, data));
 	}
 
+	public MCEntity spawnEntity(MCLocation loc, MCEntityType type) {
+		Location mcloc = (Location) ((BukkitMCLocation) loc).getHandle();
+		return new BukkitMCEntity(w.spawnEntity(
+				mcloc, BukkitMCEntityType.getConvertor().getConcreteEnum(MCEntityType.valueOf(type.name()))));
+	}
+
 	public boolean regenerateChunk(int x, int z) {
 		return w.regenerateChunk(x, z);
 	}

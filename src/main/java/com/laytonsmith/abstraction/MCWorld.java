@@ -85,6 +85,8 @@ public interface MCWorld extends AbstractionObject{
 
 	public MCFallingBlock spawnFallingBlock(MCLocation loc, int type, byte data);
 
+	public MCEntity spawnEntity(MCLocation loc, MCEntityType type);
+	
     public MCBiomeType getBiome(int x, int z);
 
     public void setBiome(int x, int z, MCBiomeType type);

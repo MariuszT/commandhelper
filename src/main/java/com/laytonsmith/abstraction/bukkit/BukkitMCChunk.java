@@ -36,7 +36,37 @@ public class BukkitMCChunk implements MCChunk {
 	public MCWorld getWorld() {
 		return new BukkitMCWorld(c.getWorld());
 	}
-	
+
+	@Override
+	public boolean isLoaded() {
+		return c.isLoaded();
+	}
+
+	@Override
+	public boolean load(boolean generate) {
+		return c.load(generate);
+	}
+
+	@Override
+	public boolean load() {
+		return c.load();
+	}
+
+	@Override
+	public boolean unload(boolean save, boolean safe) {
+		return c.unload(save, safe);
+	}
+
+	@Override
+	public boolean unload(boolean save) {
+		return c.unload(save);
+	}
+
+	@Override
+	public boolean unload() {
+		return c.unload();
+	}
+
 	public Object getHandle() {
 		return c;
 	}

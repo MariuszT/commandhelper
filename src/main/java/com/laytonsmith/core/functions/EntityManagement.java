@@ -12,6 +12,7 @@ import com.laytonsmith.abstraction.enums.MCEntityEffect;
 import com.laytonsmith.abstraction.enums.MCEntityType;
 import com.laytonsmith.abstraction.enums.MCEquipmentSlot;
 import com.laytonsmith.abstraction.enums.MCProjectileType;
+import com.laytonsmith.abstraction.enums.MCRotation;
 import com.laytonsmith.annotations.api;
 import com.laytonsmith.core.CHVersion;
 import com.laytonsmith.core.ObjectGenerator;
@@ -1530,8 +1531,13 @@ public class EntityManagement {
 					break;
 				}
 			}
-			if(p == null){
-				p = (MCPainting)loc.getWorld().spawn(loc, MCEntityType.PAINTING);
+			if (p == null) {
+				try {
+					p = (MCPainting) loc.getWorld().spawn(loc, MCEntityType.PAINTING);
+				} catch (IllegalArgumentException e) {
+					throw new ConfigRuntimeException("You can not set painting at this location.",
+							ExceptionType.InvalidLocationException, t);
+				}
 			}
 			boolean worked = p.setArt(art);
 			if(!worked){
@@ -1558,7 +1564,180 @@ public class EntityManagement {
 			return CHVersion.V3_3_1;
 		}
 	}
-	
+
+	@api
+	public static class set_item_frame_at extends AbstractFunction {
+
+		@Override
+		public ExceptionType[] thrown() {
+			return new ExceptionType[]{ExceptionType.FormatException};
+		}
+
+		@Override
+		public boolean isRestricted() {
+			return true;
+		}
+
+		@Override
+		public Boolean runAsync() {
+			return false;
+		}
+
+		@Override
+		public Construct exec(Target t, Environment environment, Construct... args) throws ConfigRuntimeException {
+			MCWorld w = null;
+			if (environment.getEnv(CommandHelperEnvironment.class).GetPlayer() != null) {
+				w = environment.getEnv(CommandHelperEnvironment.class).GetPlayer().getWorld();
+			}
+			MCLocation loc = ObjectGenerator.GetGenerator().location(args[0], w, t);
+
+			MCItemFrame item = null;
+
+			for (MCEntity e : StaticLayer.GetConvertor().GetEntitiesAt(loc, 1)) {
+				if (e instanceof MCItemFrame) {
+					item = (MCItemFrame) e;
+					break;
+				}
+			}
+
+			MCBlockFace facing;
+
+			try {
+				facing = MCBlockFace.valueOf(args[1].val());
+			} catch (IllegalArgumentException e) {
+				throw new ConfigRuntimeException(String.format("Invalid facing type: %s", args[1].val()),
+						ExceptionType.FormatException, t);
+			}
+
+			if (item == null) {
+				try {
+					item = (MCItemFrame) loc.getWorld().spawn(loc, MCEntityType.ITEM_FRAME);
+					// Workaround for a Bukkit bug. At now it's the only way to set proper facing.
+					// Unfortunately effect is visible only after player relogin.
+					item.teleport(loc.getBlock().getRelative(facing).getLocation());
+				} catch (IllegalArgumentException e) {
+					throw new ConfigRuntimeException("You can not set frame at this location.",
+							ExceptionType.InvalidLocationException, t);
+				}
+			}
+
+			try {
+				item.setFacingDirection(facing, true);
+			} catch (IllegalArgumentException e) {
+				throw new ConfigRuntimeException("This facing is incorrect at this location.",
+						ExceptionType.InvalidLocationException, t);
+			}
+
+			if (args.length > 2) {
+				MCItemStack is = ObjectGenerator.GetGenerator().item(args[2], t);
+
+				item.setItem(is);
+
+				if (args.length == 4) {
+					MCRotation rotation;
+
+					try {
+						rotation = MCRotation.valueOf(args[3].val());
+					} catch (IllegalArgumentException e) {
+						throw new ConfigRuntimeException(String.format("Invalid rotation value: %s", args[3].val()),
+								ExceptionType.FormatException, t);
+					}
+
+					item.setRotation(rotation);
+				}
+			}
+
+			return new CVoid(t);
+		}
+
+		@Override
+		public String getName() {
+			return "set_item_frame_at";
+		}
+
+		@Override
+		public Integer[] numArgs() {
+			return new Integer[]{2, 3, 4};
+		}
+
+		@Override
+		public String docs() {
+			return "boolean {locationArray, facing[, itemArray[, rotation]]} Sets the frame at the specified location,"
+					+ " with the given facing. You can also put specifed item into frame, with rotation which may be"
+					+ " one of the following: " + StringUtils.Join(MCRotation.values(), ", ");
+		}
+
+		@Override
+		public Version since() {
+			return CHVersion.V3_3_1;
+		}
+	}
+
+	@api
+	public static class get_item_frame_at extends AbstractFunction {
+
+		@Override
+		public ExceptionType[] thrown() {
+			return new ExceptionType[]{ExceptionType.FormatException};
+		}
+
+		@Override
+		public boolean isRestricted() {
+			return true;
+		}
+
+		@Override
+		public Boolean runAsync() {
+			return false;
+		}
+
+		@Override
+		public Construct exec(Target t, Environment environment, Construct... args) throws ConfigRuntimeException {
+			MCWorld w = null;
+			if (environment.getEnv(CommandHelperEnvironment.class).GetPlayer() != null) {
+				w = environment.getEnv(CommandHelperEnvironment.class).GetPlayer().getWorld();
+			}
+			List<MCEntity> es = StaticLayer.GetConvertor().GetEntitiesAt(ObjectGenerator.GetGenerator().location(args[0], w, t), 1);
+			for (MCEntity e : es) {
+				if (e instanceof MCItemFrame) {
+					CArray ret = CArray.GetAssociativeArray(t);
+					ret.set("facing", ((MCItemFrame) e).getFacing().name());
+					MCItemStack item = ((MCItemFrame) e).getItem();
+
+					if (item != null) {
+						ret.set("item", ObjectGenerator.GetGenerator().item(item, t), t);
+						ret.set("rotation", ((MCItemFrame) e).getRotation().name());
+					}
+					return ret;
+				}
+			}
+			throw new ConfigRuntimeException("There is no item frame at the specified location", ExceptionType.BadEntityException, t);
+		}
+
+		@Override
+		public String getName() {
+			return "get_item_frame_at";
+		}
+
+		@Override
+		public Integer[] numArgs() {
+			return new Integer[]{1};
+		}
+
+		@Override
+		public String docs() {
+			return "array {locationArray} Returns the array with informations about frames at the given location."
+					+ " Every frame array will have \"facing\" key. If frame contains item, there will be an \"item\""
+					+ " key with item array and \"rotation\" key (may be one of the following:"
+					+ " " + StringUtils.Join(MCRotation.values(), ", ") +").";
+		}
+
+		@Override
+		public Version since() {
+			return CHVersion.V3_3_1;
+		}
+	}
+
 	@api
 	public static class get_leashholder extends EntityGetterFunction {
 

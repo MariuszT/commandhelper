@@ -168,6 +168,11 @@ public class Exceptions {
 		InvalidWorldException("If a function requests a world, and the world given doesn't exist,"
 			+ " this is thrown", CHVersion.V3_3_1),
 		/**
+		 * This exception is thrown if a function tries to use a location which is incorrect or not available.
+		 */
+		InvalidLocationException("This exception is thrown if a function tries to use a location which is"
+				+ " incorrect or not available.", CHVersion.V3_3_1),
+		/**
 		 * This exception is thrown if an error occurs when trying to bind() an
 		 * event, or if a event framework related error occurs.
 		 */

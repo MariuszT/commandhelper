@@ -229,6 +229,10 @@ public class BukkitConvertor extends AbstractConvertor {
 		if(be instanceof Painting){
 			return new BukkitMCPainting((Painting)be);
 		}
+
+		if (be instanceof ItemFrame) {
+			return new BukkitMCItemFrame((ItemFrame) be);
+		}
 		
     	if(be instanceof Hanging){
     		return new BukkitMCHanging(be);
