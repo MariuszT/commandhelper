@@ -9,9 +9,13 @@ import com.laytonsmith.abstraction.MCPlayer;
 import com.laytonsmith.abstraction.MCWorld;
 import com.laytonsmith.abstraction.StaticLayer;
 import com.laytonsmith.abstraction.blocks.MCBlock;
+import com.laytonsmith.abstraction.blocks.MCBlockFace;
 import com.laytonsmith.abstraction.blocks.MCSign;
+import com.laytonsmith.abstraction.blocks.MCSkull;
 import com.laytonsmith.abstraction.enums.MCBiomeType;
 import com.laytonsmith.abstraction.enums.MCInstrument;
+import com.laytonsmith.abstraction.enums.MCRotation;
+import com.laytonsmith.abstraction.enums.MCSkullType;
 import com.laytonsmith.abstraction.enums.MCSound;
 import com.laytonsmith.abstraction.enums.MCTone;
 import com.laytonsmith.abstraction.enums.MCTreeType;
@@ -1118,6 +1122,224 @@ public class Environment {
 			MCPlayer psender = environment.getEnv(CommandHelperEnvironment.class).GetPlayer();
 			MCLocation location = ObjectGenerator.GetGenerator().location(args[0], (psender != null ? psender.getWorld() : null), t);
 			return new CBoolean(location.getWorld().generateTree(location, treeType), t);
+		}
+	}
+
+	@api
+	public static class set_skull_at extends AbstractFunction {
+
+		@Override
+		public ExceptionType[] thrown() {
+			return new ExceptionType[]{ExceptionType.FormatException};
+		}
+
+		@Override
+		public boolean isRestricted() {
+			return true;
+		}
+
+		@Override
+		public Boolean runAsync() {
+			return false;
+		}
+
+		@Override
+		public Construct exec(Target t, com.laytonsmith.core.environments.Environment environment, Construct... args) throws ConfigRuntimeException {
+			MCSkull skull;
+			int x = 0;
+			int y = 0;
+			int z = 0;
+			int meta = 0;
+			MCWorld w = null;
+			MCBlockFace rotation = MCBlockFace.EAST;
+			MCSkullType type = MCSkullType.PLAYER;
+			String owner;
+
+			if (environment.getEnv(CommandHelperEnvironment.class).GetPlayer() != null) {
+				w = environment.getEnv(CommandHelperEnvironment.class).GetPlayer().getWorld();
+			}
+			MCLocation loc = ObjectGenerator.GetGenerator().location(args[0], w, t);
+
+			x = (int) java.lang.Math.floor(loc.getBlockX());
+			y = (int) java.lang.Math.floor(loc.getBlockY());
+			z = (int) java.lang.Math.floor(loc.getBlockZ());
+			w = loc.getWorld();
+
+			MCBlock b = w.getBlockAt(x, y, z);
+
+			if (args.length > 1) {
+				meta = Integer.parseInt(args[1].val());
+
+				if (meta < 0 || meta > 4) {
+					throw new ConfigRuntimeException(String.format("Invalid facing value: %s", args[1].val()),
+							ExceptionType.FormatException, t);
+				}
+			}
+
+			if (args.length > 2) {
+				try {
+					rotation = MCBlockFace.valueOf(args[2].val());
+				} catch (IllegalArgumentException e) {
+					throw new ConfigRuntimeException(String.format("Invalid rotation type: %s", args[2].val()),
+							ExceptionType.FormatException, t);
+				}
+			}
+
+			if (args.length > 3) {
+				try {
+					type = MCSkullType.valueOf(args[3].val());
+				} catch (IllegalArgumentException e) {
+					throw new ConfigRuntimeException(String.format("Invalid skull type: %s", args[3].val()),
+							ExceptionType.FormatException, t);
+				}
+			}
+
+			try {
+				b.setTypeId(144);
+			} catch (IllegalArgumentException e) {
+				throw new ConfigRuntimeException("You can not set skull at this location.",
+						ExceptionType.InvalidLocationException, t);
+			}
+
+			byte imeta = Byte.parseByte(args[1].val());
+			try {
+				b.setData(imeta);
+			} catch (IllegalArgumentException e) {
+				throw new ConfigRuntimeException(String.format("Invalid skull facing: %s", args[1].val()),
+						ExceptionType.FormatException, t);
+			}
+
+			skull = (MCSkull)b.getState();
+			
+			try {
+				skull.setRotation(rotation);
+			} catch (IllegalArgumentException e) {
+				throw new ConfigRuntimeException(String.format("Invalid rotation value: %s", args[2].val()),
+						ExceptionType.FormatException, t);
+			}
+
+			try {
+				skull.setSkullType(type);
+			} catch (IllegalArgumentException e) {
+				throw new ConfigRuntimeException(String.format("Invalid skull type: %s", args[3].val()),
+						ExceptionType.FormatException, t);
+			}
+
+			if (type == MCSkullType.PLAYER && args.length == 5) {
+				owner = args[4].val();
+
+				try {
+					skull.setOwner(owner);
+				} catch (IllegalArgumentException e) {
+					throw new ConfigRuntimeException(String.format("Invalid owner name: %s", args[4].val()),
+							ExceptionType.FormatException, t);
+				}
+			}
+
+			return new CVoid(t);
+		}
+
+		@Override
+		public String getName() {
+			return "set_skull_at";
+		}
+
+		@Override
+		public Integer[] numArgs() {
+			return new Integer[]{1, 2, 3, 4, 5};
+		}
+
+		@Override
+		public String docs() {
+			return "void {locationArray[, facing[, rotation[, type[, owner]]]]} Sets the skull at the specified location,"
+					+ " with a given facing (numbers from 1 to 4), with rotation (four directions of the world) and the type,"
+					+ "one of the following: " + StringUtils.Join(MCSkullType.values(), ", ") + ". If skull type is a PLAYER,"
+					+ "you can specify owner of the skull by provide player nick in the last parameter.";
+		}
+
+		@Override
+		public Version since() {
+			return CHVersion.V3_3_1;
+		}
+	}
+
+	@api
+	public static class get_skull_at extends AbstractFunction {
+
+		@Override
+		public ExceptionType[] thrown() {
+			return new ExceptionType[]{ExceptionType.FormatException};
+		}
+
+		@Override
+		public boolean isRestricted() {
+			return true;
+		}
+
+		@Override
+		public Boolean runAsync() {
+			return false;
+		}
+
+		@Override
+		public Construct exec(Target t, com.laytonsmith.core.environments.Environment environment, Construct... args) throws ConfigRuntimeException {
+			MCSkull skull;
+			int x = 0;
+			int y = 0;
+			int z = 0;
+			MCWorld w = null;
+
+			if (environment.getEnv(CommandHelperEnvironment.class).GetPlayer() != null) {
+				w = environment.getEnv(CommandHelperEnvironment.class).GetPlayer().getWorld();
+			}
+			MCLocation loc = ObjectGenerator.GetGenerator().location(args[0], w, t);
+
+			x = (int) java.lang.Math.floor(loc.getBlockX());
+			y = (int) java.lang.Math.floor(loc.getBlockY());
+			z = (int) java.lang.Math.floor(loc.getBlockZ());
+			w = loc.getWorld();
+
+			MCBlock b = w.getBlockAt(x, y, z);
+
+			if (b.getTypeId() == 144) {
+
+				skull = (MCSkull)b.getState();
+
+				CArray ret = CArray.GetAssociativeArray(t);
+				ret.set("facing", ((com.laytonsmith.abstraction.MCSkull) skull.getData()).getFacing().name());
+				ret.set("rotation", skull.getRotation().name());
+				ret.set("type", skull.getSkullType().name());
+				if (skull.hasOwner()) {
+					ret.set("owner", skull.getOwner());
+				} else {
+					ret.set("owner", "");
+				}
+
+				return ret;
+			}
+
+			throw new ConfigRuntimeException("There is no skull at the specified location", ExceptionType.BadBlockTypeException, t);
+		}
+
+		@Override
+		public String getName() {
+			return "get_skull_at";
+		}
+
+		@Override
+		public Integer[] numArgs() {
+			return new Integer[]{1};
+		}
+
+		@Override
+		public String docs() {
+			return "array {locationArray} Returns the array with informations about skull at specifed location: facing, rotation,"
+					+ " type and the owner, if type is PLAYER. Thrown exception when there is no skull.";
+		}
+
+		@Override
+		public Version since() {
+			return CHVersion.V3_3_1;
 		}
 	}
 }

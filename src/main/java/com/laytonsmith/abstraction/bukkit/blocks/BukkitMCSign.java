@@ -35,5 +35,19 @@ public class BukkitMCSign implements MCSign {
     public int getTypeId() {
         return s.getTypeId();
     }
-    
+
+	@Override
+	public boolean update() {
+		return s.update();
+	}
+
+	@Override
+	public boolean update(boolean force) {
+		return s.update(force);
+	}
+
+	@Override
+	public boolean update(boolean force, boolean applyPhysics) {
+		return s.update(force, applyPhysics);
+	}
 }

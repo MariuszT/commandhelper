@@ -208,6 +208,10 @@ public class Exceptions {
 		 */
 		BadEntityTypeException("Thrown if an entity has the wrong type.", CHVersion.V3_3_1),
 		/**
+		 * Thrown if an block has the wrong type than expected.
+		 */
+		BadBlockTypeException("Thrown if an block has the wrong type.", CHVersion.V3_3_1),
+		/**
 		 * Thrown if a field was read only, but a write operation was attempted.
 		 */
 		ReadOnlyException("Thrown if a field was read only, but a write operation was attempted.", CHVersion.V3_3_1),

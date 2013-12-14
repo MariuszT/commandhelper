@@ -26,5 +26,19 @@ public class BukkitMCBlockState implements MCBlockState {
     public int getTypeId() {
         return bs.getTypeId();
     }
-    
+
+	@Override
+	public boolean update() {
+		return bs.update();
+	}
+
+	@Override
+	public boolean update(boolean force) {
+		return bs.update(force);
+	}
+
+	@Override
+	public boolean update(boolean force, boolean applyPhysics) {
+		return bs.update(force, applyPhysics);
+	}    
 }

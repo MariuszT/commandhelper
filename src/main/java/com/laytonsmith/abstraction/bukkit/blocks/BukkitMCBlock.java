@@ -21,6 +21,7 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.CreatureSpawner;
 import org.bukkit.block.Sign;
+import org.bukkit.block.Skull;
 import org.bukkit.inventory.ItemStack;
 
 /**
@@ -62,6 +63,9 @@ public class BukkitMCBlock implements MCBlock{
         }
 		if(b.getState() instanceof CreatureSpawner){
 			return new BukkitMCCreatureSpawner((CreatureSpawner)b.getState());
+		}
+		if (b.getState() instanceof Skull) {
+			return new BukkitMCSkull((Skull) b.getState());
 		}
         return new BukkitMCBlockState(b.getState());
     }

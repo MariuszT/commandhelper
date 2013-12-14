@@ -13,5 +13,11 @@ public interface MCBlockState {
     public MCMaterialData getData();
     
     public int getTypeId();
+
+	public boolean update();
+
+	public boolean update(boolean force);
+
+	public boolean update(boolean force, boolean applyPhysics);
     
 }
